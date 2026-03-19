@@ -1,0 +1,13 @@
+# Copy to .dev.vars and fill in your values
+# .dev.vars is gitignored and used for local development
+
+# Clerk (required for auth)
+CLERK_SECRET_KEY=sk_test_...
+CLERK_PUBLISHABLE_KEY=pk_test_...
+
+# Existing vars (add your other keys here)
+# ANTHROPIC_API_KEY=
+# CF_ACCOUNT_ID=
+# CF_API_TOKEN=
+# CF_AI_GATEWAY_URL=
+# TAVILY_API_KEY=

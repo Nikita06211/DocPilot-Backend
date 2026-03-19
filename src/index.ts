@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { createUIMessageStreamResponse, type UIMessage } from "ai";
 import { toBaseMessages, toUIMessageStream } from "@ai-sdk/langchain";
 import { buildAgent } from "./agent";
@@ -16,11 +17,17 @@ app.use(
   })
 );
 
+app.use("*", clerkMiddleware());
+
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
 app.get("/debug", (c) => {
+  const auth = getAuth(c);
+  if (!auth?.userId) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
   const env = c.env;
   return c.json({
     hasAnthropicKey: !!env.ANTHROPIC_API_KEY,
@@ -33,6 +40,11 @@ app.get("/debug", (c) => {
 });
 
 app.post("/ask", async (c) => {
+  const auth = getAuth(c);
+  if (!auth?.userId) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
   const body = await c.req.json<{ query?: string }>();
   const query = body.query?.trim();
 
@@ -65,6 +77,11 @@ app.post("/ask", async (c) => {
 /** AI SDK streaming endpoint - use with useChat(api: '/api/chat') */
 app.options("/api/chat", (c) => c.body(null, 204));
 app.post("/api/chat", async (c) => {
+  const auth = getAuth(c);
+  if (!auth?.userId) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
   const { messages } = await c.req.json<{ messages?: UIMessage[] }>();
 
   if (!messages?.length) {

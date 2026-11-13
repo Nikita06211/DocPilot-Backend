@@ -1,5 +1,5 @@
 import { createAgent } from "langchain";
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createSearchTool } from "./tools/search";
 import { createScraperTool } from "./tools/scraper";
 import type { Env } from "./types";
@@ -19,21 +19,14 @@ Rules:
 - If you cannot find relevant documentation, say so honestly.`;
 
 export function buildAgent(env: Env) {
-  const llm = new ChatAnthropic({
-    model: 'claude-haiku-4-5-20251001',
-    clientOptions: {
-        // baseURL: env.CF_AI_GATEWAY_URL,
-        // defaultHeaders: {
-        //     "cf-aig-authorization": `Bearer ${env.CF_API_TOKEN}`
-        // },
-        apiKey: env.ANTHROPIC_API_KEY,
+  if (!env.GOOGLE_API_KEY?.trim()) {
+    throw new Error("Missing GOOGLE_API_KEY in Worker secrets");
+  }
 
-    },
-    verbose:true,
-    thinking:{
-      budget_tokens:8000,
-      type:'enabled'
-    }
+  const llm = new ChatGoogleGenerativeAI({
+    model: env.GEMINI_MODEL || "gemini-2.5-flash",
+    apiKey: env.GOOGLE_API_KEY.trim(),
+    maxRetries: 2,
   });
 
   const tools = [

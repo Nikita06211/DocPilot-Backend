@@ -30,11 +30,10 @@ app.get("/debug", (c) => {
   }
   const env = c.env;
   return c.json({
-    hasAnthropicKey: !!env.ANTHROPIC_API_KEY,
-    anthropicKeyPrefix: env.ANTHROPIC_API_KEY?.slice(0, 7) + "...",
+    provider: "google",
+    model: env.GEMINI_MODEL || "gemini-2.5-flash",
+    hasGoogleKey: !!env.GOOGLE_API_KEY,
     hasCfToken: !!env.CF_API_TOKEN,
-    cfTokenPrefix: env.CF_API_TOKEN?.slice(0, 8) + "...",
-    gatewayUrl: env.CF_AI_GATEWAY_URL,
     hasTavilyKey: !!env.TAVILY_API_KEY,
   });
 });

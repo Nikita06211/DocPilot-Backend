@@ -1,6 +1,6 @@
 # DocPilot Backend
 
-**DocPilot Backend** — An AI-powered documentation assistant API. Users ask questions about technologies, libraries, or frameworks; the backend searches the web for relevant docs (Tavily), scrapes them (Cloudflare Browser Rendering), and answers using Claude with source citations.
+**DocPilot Backend** — An AI-powered documentation assistant API. Users ask questions about technologies, libraries, or frameworks; the backend searches the web for relevant docs (Tavily), scrapes them (Cloudflare Browser Rendering), and answers using Gemini with source citations.
 
 ## Architecture
 
@@ -26,7 +26,7 @@ flowchart TB
 
     subgraph agent [LangChain Agent]
         AgentCore[Agent]
-        LLM["ChatAnthropic Claude Haiku"]
+        LLM["ChatGoogleGenerativeAI Gemini"]
         WebSearch[web_search]
         ScrapeDocs[scrape_docs]
     end
@@ -34,7 +34,7 @@ flowchart TB
     subgraph external [External APIs]
         TavilyAPI[Tavily Search API]
         CFScraper[Cloudflare Browser Rendering API]
-        AnthropicAPI[Anthropic API]
+        GoogleAPI[Google Gemini API]
     end
 
     Frontend -->|HTTP| Hono
@@ -50,10 +50,10 @@ flowchart TB
     AgentCore --> ScrapeDocs
     WebSearch --> TavilyAPI
     ScrapeDocs --> CFScraper
-    LLM --> AnthropicAPI
+    LLM --> GoogleAPI
 ```
 
-**Data flow:** Client → Hono (CORS + Clerk) → Routes → Agent (Claude + tools) → Tavily (search) + Cloudflare (scrape) → Response (JSON or streaming).
+**Data flow:** Client → Hono (CORS + Clerk) → Routes → Agent (Gemini + tools) → Tavily (search) + Cloudflare (scrape) → Response (JSON or streaming).
 
 ## Tools and Technologies
 
@@ -62,7 +62,7 @@ flowchart TB
 | Runtime | Cloudflare Workers | Edge deployment |
 | Framework | Hono | Lightweight HTTP router |
 | Auth | Clerk + @hono/clerk-auth | JWT validation for protected routes |
-| AI/LLM | LangChain, Anthropic (Claude Haiku) | Agent orchestration, reasoning |
+| AI/LLM | LangChain, Google Gemini | Agent orchestration, reasoning |
 | Chat UI | Vercel AI SDK | Streaming responses for `useChat` |
 | Search | Tavily API | Web search for doc URLs |
 | Scraping | Cloudflare Browser Rendering | Convert docs to markdown |
@@ -85,10 +85,10 @@ Copy `.dev.vars.example` to `.dev.vars` and fill in your values. Required variab
 |----------|-------------|
 | `CLERK_SECRET_KEY` | Clerk secret key for auth |
 | `CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
-| `ANTHROPIC_API_KEY` | Anthropic API key for Claude |
+| `GOOGLE_API_KEY` | Gemini API key from Google AI Studio (server-side secret) |
+| `GEMINI_MODEL` | Optional model override; defaults to `gemini-2.5-flash` |
 | `CF_ACCOUNT_ID` | Cloudflare account ID |
 | `CF_API_TOKEN` | Cloudflare API token (Browser Rendering) |
-| `CF_AI_GATEWAY_URL` | Cloudflare AI Gateway URL (optional) |
 | `TAVILY_API_KEY` | Tavily API key for web search |
 
 ## Setup
@@ -119,7 +119,7 @@ For production, set secrets via Wrangler:
 
 ```txt
 wrangler secret put CLERK_SECRET_KEY
-wrangler secret put ANTHROPIC_API_KEY
+wrangler secret put GOOGLE_API_KEY
 # ... etc for each secret
 ```
 
